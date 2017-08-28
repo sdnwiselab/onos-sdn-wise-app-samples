@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>onos-apps</artifactId>
+        <groupId>org.onosproject</groupId>
+        <version>1.0.0-WSN-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>onos-app-gem</artifactId>
+    <packaging>bundle</packaging>
+
+    <description>ONOS Geographic Multicast Support</description>
+
+    <!--<repositories>-->
+        <!--<repository>-->
+            <!--<id>gephi-snapshots</id>-->
+            <!--<name>Gephi Snapshots</name>-->
+            <!--<url>http://nexus.gephi.org/nexus/content/repositories/snapshots/</url>-->
+        <!--</repository>-->
+        <!--<repository>-->
+            <!--<id>gephi-releases</id>-->
+            <!--<name>Gephi Releases</name>-->
+            <!--<url>http://nexus.gephi.org/nexus/content/repositories/releases/</url>-->
+        <!--</repository>-->
+    <!--</repositories>-->
+    <dependencies>
+        <dependency>
+            <groupId>org.graphstream</groupId>
+            <artifactId>gs-core</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.graphstream</groupId>
+            <artifactId>gs-algo</artifactId>
+            <version>1.3</version>
+        </dependency>
+
+        <!--<dependency>-->
+            <!--<groupId>org.gephi</groupId>-->
+            <!--<artifactId>gephi-parent</artifactId>-->
+            <!--<version>0.9-SNAPSHOT</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.gephi</groupId>-->
+            <!--<artifactId>gephi-toolkit</artifactId>-->
+            <!--<version>0.9-SNAPSHOT</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.gephi</groupId>-->
+            <!--<artifactId>gephi-toolkit</artifactId>-->
+            <!--<version>0.8.7</version>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>org.osgi</groupId>-->
+            <!--<artifactId>org.osgi.compendium</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>net.sf.jung</groupId>-->
+            <!--<artifactId>jung-graph-impl</artifactId>-->
+            <!--<version>2.0.1</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>net.sf.jung</groupId>-->
+            <!--<artifactId>jung-visualization</artifactId>-->
+            <!--<version>2.0.1</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>net.sf.jung</groupId>-->
+            <!--<artifactId>jung-api</artifactId>-->
+            <!--<version>2.0.1</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>net.sf.jung</groupId>-->
+            <!--<artifactId>jung-algorithms</artifactId>-->
+            <!--<version>2.0.1</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.gephi</groupId>-->
+            <!--<artifactId>gephi-toolkit</artifactId>-->
+            <!--<version>0.8.7</version>-->
+        <!--</dependency>-->
+        <!--&lt;!&ndash;<dependency>&ndash;&gt;-->
+            <!--&lt;!&ndash;<groupId>net.sf.jung</groupId>&ndash;&gt;-->
+            <!--&lt;!&ndash;<artifactId>jung-io</artifactId>&ndash;&gt;-->
+            <!--&lt;!&ndash;<version>2.0.1</version>&ndash;&gt;-->
+        <!--&lt;!&ndash;</dependency>&ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>colt</groupId>-->
+            <!--<artifactId>colt</artifactId>-->
+            <!--<version>1.2.0</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>concurrent</groupId>-->
+            <!--<artifactId>concurrent</artifactId>-->
+            <!--<version>1.3.4</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.microemu</groupId>-->
+            <!--<artifactId>microemulator</artifactId>-->
+            <!--<version>2.0.4</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>javax.persistence</groupId>-->
+            <!--<artifactId>persistence-api</artifactId>-->
+            <!--<version>1.0.2</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.codahale.metrics</groupId>-->
+            <!--<artifactId>metrics-healthchecks</artifactId>-->
+            <!--<version>3.0.2</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.codahale.metrics</groupId>-->
+            <!--<artifactId>metrics-jvm</artifactId>-->
+            <!--<version>3.0.2</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>com.google.protobuf</groupId>-->
+            <!--<artifactId>protobuf-java</artifactId>-->
+            <!--<version>2.6.1</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.felix</groupId>-->
+            <!--<artifactId>maven-scr-plugin</artifactId>-->
+            <!--<version>1.21.0</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>xerces</groupId>-->
+            <!--<artifactId>xercesImpl</artifactId>-->
+            <!--<version>2.6.2-jaxb-1.0.6</version>-->
+            <!--<scope>package</scope>-->
+
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.bouncycastle</groupId>-->
+            <!--<artifactId>bcprov-jdk16</artifactId>-->
+            <!--<version>1.46</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>org.apache.xmlgraphics</groupId>-->
+            <!--<artifactId>batik-svggen</artifactId>-->
+            <!--<version>1.7</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>junit</groupId>-->
+            <!--<artifactId>junit</artifactId>-->
+            <!--<version>4.12</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.bouncycastle</groupId>-->
+            <!--<artifactId>bcpkix-jdk15on</artifactId>-->
+            <!--<version>1.52</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>org.codehaus.plexus</groupId>-->
+            <!--<artifactId>plexus-utils</artifactId>-->
+            <!--<version>1.5.12</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.codehaus.plexus</groupId>-->
+            <!--<artifactId>plexus-interpolation</artifactId>-->
+            <!--<version>1.22</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.hamcrest</groupId>-->
+            <!--<artifactId>hamcrest-all</artifactId>-->
+            <!--<version>1.3</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.ant</groupId>-->
+            <!--<artifactId>ant</artifactId>-->
+            <!--<version>1.8.2</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.codeartisans.thirdparties.swing</groupId>-->
+            <!--<artifactId>org-openide-util</artifactId>-->
+            <!--<version>8.6.2</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.codeartisans.thirdparties.swing</groupId>-->
+            <!--<artifactId>org-netbeans-api-visual</artifactId>-->
+            <!--<version>2.23.1</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>com.sun.net.httpserver</groupId>-->
+            <!--<artifactId>http</artifactId>-->
+            <!--<version>20070405</version>-->
+            <!--<scope>package</scope>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math</artifactId>
+            <version>2.0</version>
+            <scope>package</scope>
+        </dependency>
+
+
+        <!-- -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.4</version>
+            <scope>package</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-shade-plugin</artifactId>-->
+                <!--<version>2.3</version>-->
+                <!--<configuration>-->
+                    <!--<artifactSet>-->
+                        <!--<excludes>-->
+                            <!--<exclude>io.netty:netty</exclude>-->
+                            <!--<exclude>com.google.guava:guava</exclude>-->
+                            <!--<exclude>org.slf4j:slfj-api</exclude>-->
+                            <!--<exclude>ch.qos.logback:logback-core</exclude>-->
+                            <!--<exclude>ch.qos.logback:logback-classic</exclude>-->
+                            <!--<exclude>com.google.code.findbugs:annotations</exclude>-->
+                        <!--</excludes>-->
+                    <!--</artifactSet>-->
+                <!--</configuration>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>shade</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Export-Package>
+                            org.onosproject.gem.*, org.graphstream.*, org.apache.commons.math.*, org.apache.commons.math3.*,
+                            org.jfree.*, com.keypoint.*, org.miv.*
+                            <!--edu.uci.ics.jung.*,cern.*,EDU.oswego.cs.dl.util.concurrent.*,corejava.*,hep.aida.*,-->
+                            <!--org.apache.commons.collections15.*,-->
+                            <!--org.gephi.*, com.csvreader.*, com.itextpdf.*,-->
+                            <!--com.sun.org.apache.xerces.*,-->
+                            <!--com.sun.org.apache.xml.internal.*, gnu.trove.*, javanet.staxutils.*, org.apache.*, java_cup.runtime.*,-->
+                            <!--org.bouncycastle.*, junit.*, org.codehaus.*, hidden.org.codehaus.plexus.*, org.jfree.*, com.keypoint.*,-->
+                            <!--org.junit.*, org.hamcrest.*, com.sun.tools.apt.*, org.openide.*, org.netbeans.*-->
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

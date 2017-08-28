@@ -1,22 +1,20 @@
-# Compiled class file
+*~
 *.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+.classpath
+.project
+.pydevproject
+.settings
+.javacp*
+.checkstyle
+target
+*.iml
+*.pyc
+dependency-reduced-pom.xml
+.idea
+*.DS_Store
+.buckd
+buck-out
+.buckconfig.local
+.buckjavaargs*
+.watchmanconfig
+npm-debug.log
