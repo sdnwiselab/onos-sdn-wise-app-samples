@@ -274,8 +274,15 @@ public final class MapReduceInit {
                             .setOpenPath(path)
                             .buildSensorFlow();
 
-                    FlowRule flowRule = new DefaultFlowRule(path.src().deviceId(), null,
-                            sensorTrafficTreatment, 10, appId, 10, false);
+                    FlowRule flowRule = DefaultFlowRule.builder()
+                            .forDevice(path.src().deviceId())
+                            .withSelector(null)
+                            .withTreatment(sensorTrafficTreatment)
+                            .withPriority(10)
+                            .fromApp(appId)
+                            .withIdleTimeout(10)
+                            .build();
+
                     flowRuleService.applyFlowRules(flowRule);
 
                     return true;
@@ -301,8 +308,15 @@ public final class MapReduceInit {
                             .setForwardFunction(MapReduceFunctionType.MAP_FUNCTION.functionId(), false)
                             .buildSensorFlow();
 
-            FlowRule flowRule = new DefaultFlowRule(dst.deviceId(), trafficSelector, trafficTreatment,
-                    10, appId, 10, false);
+            FlowRule flowRule = DefaultFlowRule.builder()
+                    .forDevice(dst.deviceId())
+                    .withSelector(trafficSelector)
+                    .withTreatment(trafficTreatment)
+                    .withPriority(10)
+                    .fromApp(appId)
+                    .withIdleTimeout(10)
+                    .build();
+
             flowRuleService.applyFlowRules(flowRule);
         }
 
@@ -321,8 +335,15 @@ public final class MapReduceInit {
                         .reMatchPacket()
                         .buildSensorFlow();
 
-                FlowRule flowRule = new DefaultFlowRule(dst.deviceId(), trafficSelector, sensorTrafficTreatment,
-                        10, appId, 10, false);
+                FlowRule flowRule = DefaultFlowRule.builder()
+                        .forDevice(dst.deviceId())
+                        .withSelector(trafficSelector)
+                        .withTreatment(sensorTrafficTreatment)
+                        .withPriority(10)
+                        .fromApp(appId)
+                        .withIdleTimeout(10)
+                        .build();
+
                 flowRuleService.applyFlowRules(flowRule);
             }
         }
@@ -421,8 +442,15 @@ public final class MapReduceInit {
                         .reMatchPacket()
                         .buildSensorFlow();
 
-                flowRule = new DefaultFlowRule(reducerNode.deviceId(), trafficSelector, trafficTreatment,
-                        PRIORITY, appId, TIMEOUT, false);
+                flowRule = DefaultFlowRule.builder()
+                        .forDevice(reducerNode.deviceId())
+                        .withSelector(trafficSelector)
+                        .withTreatment(trafficTreatment)
+                        .withPriority(PRIORITY)
+                        .fromApp(appId)
+                        .withIdleTimeout(TIMEOUT)
+                        .build();
+
                 flowRuleService.applyFlowRules(flowRule);
             }
 
@@ -440,8 +468,15 @@ public final class MapReduceInit {
                     .setStateValueConst(curSumCellPos, 1, 0, false)
                     .buildSensorFlow();
 
-            flowRule = new DefaultFlowRule(reducerNode.deviceId(), trafficSelector, trafficTreatment,
-                    PRIORITY, appId, TIMEOUT, false);
+            flowRule = DefaultFlowRule.builder()
+                    .forDevice(reducerNode.deviceId())
+                    .withSelector(trafficSelector)
+                    .withTreatment(trafficTreatment)
+                    .withPriority(PRIORITY)
+                    .fromApp(appId)
+                    .withIdleTimeout(TIMEOUT)
+                    .build();
+
             flowRuleService.applyFlowRules(flowRule);
 
             // In case the reduce function cannot be called, drop the packet
@@ -457,8 +492,15 @@ public final class MapReduceInit {
                     .dropPacket(false)
                     .buildSensorFlow();
 
-            flowRule = new DefaultFlowRule(reducerNode.deviceId(), trafficSelector, trafficTreatment,
-                    PRIORITY, appId, TIMEOUT, false);
+            flowRule = DefaultFlowRule.builder()
+                    .forDevice(reducerNode.deviceId())
+                    .withSelector(trafficSelector)
+                    .withTreatment(trafficTreatment)
+                    .withPriority(PRIORITY)
+                    .fromApp(appId)
+                    .withIdleTimeout(TIMEOUT)
+                    .build();
+
             flowRuleService.applyFlowRules(flowRule);
 
 
@@ -471,8 +513,15 @@ public final class MapReduceInit {
                     .askController(false)
                     .buildSensorFlow();
 
-            flowRule = new DefaultFlowRule(reducerNode.deviceId(), trafficSelector, trafficTreatment,
-                    PRIORITY, appId, TIMEOUT, false);
+            flowRule = DefaultFlowRule.builder()
+                    .forDevice(reducerNode.deviceId())
+                    .withSelector(trafficSelector)
+                    .withTreatment(trafficTreatment)
+                    .withPriority(PRIORITY)
+                    .fromApp(appId)
+                    .withIdleTimeout(TIMEOUT)
+                    .build();
+
             flowRuleService.applyFlowRules(flowRule);
         }
 

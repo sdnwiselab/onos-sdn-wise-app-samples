@@ -172,7 +172,7 @@ public final class MapReduceForwarding {
                 MacAddress hostMac = pkt.parsed().getDestinationMAC();
 
                 // Do not process link-local addresses in any way.
-                if (id.mac().isLinkLocal()) {
+                if (id.mac().isLldp()) {
                     return null;
                 }
 
@@ -362,13 +362,19 @@ public final class MapReduceForwarding {
                 builder.matchEthType(inPkt.getEtherType())
                         .matchEthSrc(inPkt.getSourceMAC())
                         .matchEthDst(inPkt.getDestinationMAC())
-                        .matchInport(context.inPacket().receivedFrom().port());
+                        .matchInPort(context.inPacket().receivedFrom().port());
 
                 TrafficTreatment.Builder treat = DefaultTrafficTreatment.builder();
                 treat.setOutput(portNumber);
 
-                FlowRule f = new DefaultFlowRule(context.inPacket().receivedFrom().deviceId(),
-                        builder.build(), treat.build(), PRIORITY, appId, TIMEOUT, false);
+                FlowRule f = DefaultFlowRule.builder()
+                        .forDevice(context.inPacket().receivedFrom().deviceId())
+                        .withSelector(builder.build())
+                        .withTreatment(treat.build())
+                        .withPriority(PRIORITY)
+                        .fromApp(appId)
+                        .withIdleTimeout(TIMEOUT)
+                        .build();
 
                 flowRuleService.applyFlowRules(f);
             }
@@ -399,8 +405,15 @@ public final class MapReduceForwarding {
                         .setOpenPath(path)
                         .buildSensorFlow();
 
-                FlowRule flowRule = new DefaultFlowRule(path.src().deviceId(), null,
-                        sensorTrafficTreatment, 10, appId, 10, false);
+                FlowRule flowRule = DefaultFlowRule.builder()
+                        .forDevice(path.src().deviceId())
+                        .withSelector(null)
+                        .withTreatment(sensorTrafficTreatment)
+                        .withPriority(PRIORITY)
+                        .fromApp(appId)
+                        .withIdleTimeout(10)
+                        .build();
+
                 flowRuleService.applyFlowRules(flowRule);
             }
 
@@ -436,8 +449,15 @@ public final class MapReduceForwarding {
                     .setOpenPath(path)
                     .buildSensorFlow();
 
-            FlowRule flowRule = new DefaultFlowRule(path.src().deviceId(), sensorTrafficSelector,
-                    sensorTrafficTreatment, 10, appId, 10, false);
+            FlowRule flowRule = DefaultFlowRule.builder()
+                    .forDevice(path.src().deviceId())
+                    .withSelector(sensorTrafficSelector)
+                    .withTreatment(sensorTrafficTreatment)
+                    .withPriority(PRIORITY)
+                    .fromApp(appId)
+                    .withIdleTimeout(10)
+                    .build();
+
             flowRuleService.applyFlowRules(flowRule);
         }
 
@@ -511,8 +531,15 @@ public final class MapReduceForwarding {
                     SensorTrafficTreatment sensorTrafficTreatment = SensorEnabledTrafficTreatment.builder()
                             .setForwardFunction(PROTO_ENCAPSULATION_FUNCTION.functionId(), false, args)
                             .buildSensorFlow();
-                    FlowRule flowRule = new DefaultFlowRule(srcNodeDeviceId, sensorTrafficSelector,
-                            sensorTrafficTreatment, PRIORITY, appId, TIMEOUT, false);
+                    FlowRule flowRule = DefaultFlowRule.builder()
+                            .forDevice(srcNodeDeviceId)
+                            .withSelector(sensorTrafficSelector)
+                            .withTreatment(sensorTrafficTreatment)
+                            .withPriority(PRIORITY)
+                            .fromApp(appId)
+                            .withIdleTimeout(TIMEOUT)
+                            .build();
+
                     flowRuleService.applyFlowRules(flowRule);
                 } else {
                     Host host = hostService.getConnectedHosts(srcNodeDeviceId).iterator().next();
@@ -532,8 +559,15 @@ public final class MapReduceForwarding {
                     SensorTrafficTreatment sensorTrafficTreatment = SensorEnabledTrafficTreatment.builder()
                             .setForwardFunction(PROTO_ENCAPSULATION_FUNCTION.functionId(), false, args)
                             .buildSensorFlow();
-                    FlowRule flowRule = new DefaultFlowRule(dstNodeDeviceId, sensorTrafficSelector,
-                            sensorTrafficTreatment, PRIORITY, appId, TIMEOUT, false);
+                    FlowRule flowRule = DefaultFlowRule.builder()
+                            .forDevice(dstNodeDeviceId)
+                            .withSelector(sensorTrafficSelector)
+                            .withTreatment(sensorTrafficTreatment)
+                            .withPriority(PRIORITY)
+                            .fromApp(appId)
+                            .withIdleTimeout(TIMEOUT)
+                            .build();
+
                     flowRuleService.applyFlowRules(flowRule);
                 }
             });
@@ -570,8 +604,15 @@ public final class MapReduceForwarding {
                             .setForwardFunction(PROTO_ENCAPSULATION_FUNCTION.functionId(), false, args)
                             .buildSensorFlow();
 
-                    FlowRule flowRule = new DefaultFlowRule(srcNodeDeviceId, sensorTrafficSelector,
-                            sensorTrafficTreatment, PRIORITY, appId, TIMEOUT, false);
+                    FlowRule flowRule = DefaultFlowRule.builder()
+                            .forDevice(srcNodeDeviceId)
+                            .withSelector(sensorTrafficSelector)
+                            .withTreatment(sensorTrafficTreatment)
+                            .withPriority(PRIORITY)
+                            .fromApp(appId)
+                            .withIdleTimeout(TIMEOUT)
+                            .build();
+
                     flowRuleService.applyFlowRules(flowRule);
                 } else if ((isSensorNode(srcNodeDeviceId)) && (isSensorNode(dstNodeDeviceId))) {
                     Set<Path> paths = topologyService.getPaths(topologyService.currentTopology(),
