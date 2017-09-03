@@ -27,7 +27,7 @@ import java.util.Set;
 public final class MapReduceDeployer {
     private static MapReduceDeployer mapReduceDeployer = null;
 
-    private final String path = "/home/aca/Development/JAVA/OSGi/apache-karaf-3.0.2/";
+    private final String path = "/home/user/";
     private final String command = path + "calculate_optimal_cost";
     private final String outputFilename = path + "output.dat";
 

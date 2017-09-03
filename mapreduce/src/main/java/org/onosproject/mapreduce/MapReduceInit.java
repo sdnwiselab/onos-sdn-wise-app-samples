@@ -165,7 +165,7 @@ public final class MapReduceInit {
                     case SENSOR_ADDED: case SENSOR_UPDATED:
                         energyStatistics.updateNode(event.subject()).log();
                         // TODO: FIXME!!!
-                        if (topologyService.currentTopology().linkCount() == 68) {
+                        if (topologyService.currentTopology().linkCount() >= 30) {
                             // If all nodes have been initialized, we can start
                             if (initializedNodes.size() < sensorNodeService.getSensorNodeCount()) {
                                 log.info("Have latest topology version: {}",
