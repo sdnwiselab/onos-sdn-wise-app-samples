@@ -13,6 +13,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,29 +25,27 @@ import java.util.logging.Logger;
 public final class ToUdp implements FunctionInterface {
     @Override
     public void function(HashMap<String, Object> adcRegister,
-                         ArrayList<FlowTableEntry> flowTable,
-                         ArrayList<Neighbor> neighborTable,
+                         List<FlowTableEntry> flowTable,
+                         Set<Neighbor> neighborTable,
                          ArrayList<Integer> statusRegister,
-                         ArrayList<NodeAddress> acceptedId,
+                         List<NodeAddress> acceptedId,
                          ArrayBlockingQueue<NetworkPacket> flowTableQueue,
                          ArrayBlockingQueue<NetworkPacket> txQueue,
-                         int arg1,
-                         int arg2,
-                         int arg3,
+                         byte[] bytes,
                          NetworkPacket np) {
 
         try {
 
             byte[] addr = new byte[4];
-            addr[0] = (byte) (arg1 >> 8);
-            addr[1] = (byte) (arg1);
-            addr[2] = (byte) (arg2 >> 8);
-            addr[3] = (byte) (arg2);
+            addr[0] = bytes[0];
+            addr[1] = bytes[1];
+            addr[2] = bytes[2];
+            addr[3] = bytes[3];
 
             InetAddress dstAddress = InetAddress.getByAddress(addr);
             DatagramSocket socket = new DatagramSocket();
             DatagramPacket pck = new DatagramPacket(np.toByteArray(), np.getLen(),
-                    new InetSocketAddress(dstAddress, arg3));
+                    new InetSocketAddress(dstAddress, ((bytes[4] & 0xff) << 8) | (bytes[5] & 0xff)));
             socket.send(pck);
             socket.close();
             System.out.println("Sent packet to " + pck.getAddress() + ":" + pck.getPort());

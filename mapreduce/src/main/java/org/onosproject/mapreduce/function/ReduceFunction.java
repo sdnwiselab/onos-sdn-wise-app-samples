@@ -12,10 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import java.awt.Rectangle;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.OptionalDouble;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.IntStream;
 
@@ -26,22 +23,24 @@ public final class ReduceFunction implements FunctionInterface {
     private static JFrame frame = null;
     private static Box box = null;
 
+    private byte[] getPayload(NetworkPacket np){
+        return Arrays.copyOfRange(np.toByteArray(), NetworkPacket.DFLT_HDR_LEN, np.getLen());
+    }
+
     @Override
     public void function(HashMap<String, Object> adcRegister,
-                         ArrayList<FlowTableEntry> flowTable,
-                         ArrayList<Neighbor> neighborTable,
+                         List<FlowTableEntry> flowTable,
+                         Set<Neighbor> neighborTable,
                          ArrayList<Integer> statusRegister,
-                         ArrayList<NodeAddress> acceptedId,
+                         List<NodeAddress> acceptedId,
                          ArrayBlockingQueue<NetworkPacket> flowTableQueue,
                          ArrayBlockingQueue<NetworkPacket> txQueue,
-                         int arg1,
-                         int arg2,
-                         int arg3,
+                         byte[] bytes,
                          NetworkPacket np) {
 
-        int valueArrayBeginPos = arg1;
-        int nofNodes = arg2;
-        int packetType = arg3;
+        int valueArrayBeginPos = ((bytes[0] & 0xff) << 8) | (bytes[1] & 0xff);;
+        int nofNodes = ((bytes[2] & 0xff) << 8) | (bytes[3] & 0xff);;
+        int packetType = ((bytes[4] & 0xff) << 8) | (bytes[5] & 0xff);;
         int valueArrayEndPos = valueArrayBeginPos + nofNodes - 1;
 
         if (frame == null) {
@@ -60,7 +59,7 @@ public final class ReduceFunction implements FunctionInterface {
         OptionalDouble resDouble = Arrays.stream(state, valueArrayBeginPos, valueArrayEndPos).average();
 
         String msg = "REDUCE function called and calculated average " + resDouble.getAsDouble()
-                + " for KEY " + np.getPayload()[0];
+                + " for KEY " + getPayload(np)[0];
 
         JLabel label = new JLabel(msg);
         label.setAlignmentX(JLabel.LEFT_ALIGNMENT);
@@ -74,15 +73,26 @@ public final class ReduceFunction implements FunctionInterface {
         byte[] res = ByteBuffer.allocate(Double.BYTES).putDouble(resDouble.getAsDouble()).array();
 
         byte[] payload = new byte[res.length + 1];
-        payload[0] = np.getPayload()[0];
+        payload[0] = getPayload(np)[0];
         System.arraycopy(res, 0, payload, 1, res.length);
 
         // Create a network packet with src and dst the current node
-        NetworkPacket networkPacket = new NetworkPacket(np.getNetId(), np.getDst(), np.getDst());
-        networkPacket.setType((byte) packetType);
+        NetworkPacket networkPacket = new NetworkPacket(np.getNet(), np.getDst(), np.getDst());
+        networkPacket.setTyp((byte) packetType);
         networkPacket.setTtl((byte) 100);
         networkPacket.setLen((byte) (10 + payload.length));
-        networkPacket.setPayload(payload);
+
+
+        byte[] tmp = networkPacket.toByteArray();
+
+        if (payload.length + NetworkPacket.DFLT_HDR_LEN <= NetworkPacket.MAX_PACKET_LENGTH) {
+            System.arraycopy(payload, 0, tmp, NetworkPacket.DFLT_HDR_LEN, payload.length);
+            tmp[NetworkPacket.LEN_INDEX] = ((byte) (payload.length + NetworkPacket.DFLT_HDR_LEN));
+        } else {
+            throw new IllegalArgumentException("Payload exceeds packet size");
+        }
+
+        networkPacket.setArray(tmp);
 
         // Send the packet to the flowtable
         flowTableQueue.add(networkPacket);

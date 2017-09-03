@@ -88,8 +88,8 @@
 
         <dependency>
             <groupId>com.github.sdnwiselab</groupId>
-            <artifactId>sdn-wise-api</artifactId>
-            <version>3.0.4</version>
+            <artifactId>sdn-wise-core</artifactId>
+            <version>4.0.0</version>
         </dependency>
     </dependencies>
 

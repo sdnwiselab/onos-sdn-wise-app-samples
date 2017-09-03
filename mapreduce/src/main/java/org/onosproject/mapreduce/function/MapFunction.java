@@ -5,10 +5,14 @@ import com.github.sdnwiselab.sdnwise.function.FunctionInterface;
 import com.github.sdnwiselab.sdnwise.packet.NetworkPacket;
 import com.github.sdnwiselab.sdnwise.util.Neighbor;
 import com.github.sdnwiselab.sdnwise.util.NodeAddress;
+import com.google.common.graph.Network;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -22,10 +26,6 @@ public final class MapFunction extends TimerTask implements FunctionInterface {
     private byte packetType;
     private byte key;
 
-    public MapFunction() {
-        key = 0;
-        packetType = 0;
-    }
 
     public MapFunction(byte packetType, byte key, NetworkPacket np, ArrayBlockingQueue<NetworkPacket> flowTableQueue) {
         this.packetType = packetType;
@@ -34,16 +34,15 @@ public final class MapFunction extends TimerTask implements FunctionInterface {
         this.flowTableQueue = flowTableQueue;
     }
 
+    @Override
     public void function(HashMap<String, Object> adcRegister,
-                         ArrayList<FlowTableEntry> flowTable,
-                         ArrayList<Neighbor> neighborTable,
+                         List<FlowTableEntry> flowTable,
+                         Set<Neighbor> neighborTable,
                          ArrayList<Integer> statusRegister,
-                         ArrayList<NodeAddress> acceptedId,
+                         List<NodeAddress> acceptedId,
                          ArrayBlockingQueue<NetworkPacket> flowTableQueue,
                          ArrayBlockingQueue<NetworkPacket> txQueue,
-                         int arg1,
-                         int arg2,
-                         int arg3,
+                         byte[] bytes,
                          NetworkPacket np) {
 
         // Empty the state
@@ -68,15 +67,21 @@ public final class MapFunction extends TimerTask implements FunctionInterface {
         }
     }
 
+
+    private byte[] getPayload(NetworkPacket np){
+        return Arrays.copyOfRange(np.toByteArray(), NetworkPacket.DFLT_HDR_LEN, np.getLen());
+    }
+
+
     private byte getPacketType(NetworkPacket np) {
-        return np.getPayload()[0];
+        return getPayload(np)[0];
     }
 
     private byte[] getKeys(NetworkPacket np) {
         int keyLength = (np.getLen() - 10 - 1);
         byte[] keys = new byte[keyLength];
 
-        byte[] payload = np.getPayload();
+        byte[] payload = getPayload(np);
         for (int j = 1; j < payload.length; j++) {
             keys[j - 1] = payload[j];
         }
@@ -103,11 +108,21 @@ public final class MapFunction extends TimerTask implements FunctionInterface {
         temp[5] = 0;
 
         // Create a network packet with src and dst the current node
-        NetworkPacket networkPacket = new NetworkPacket(np.getNetId(), np.getDst(), np.getDst());
-        networkPacket.setType(packetType);
+        NetworkPacket networkPacket = new NetworkPacket(np.getNet(), np.getDst(), np.getDst());
+        networkPacket.setTyp(packetType);
         networkPacket.setTtl((byte) 100);
         networkPacket.setLen((byte) (10 + temp.length));
-        networkPacket.setPayload(temp);
+
+        byte[] tmp = networkPacket.toByteArray();
+
+        if (temp.length + NetworkPacket.DFLT_HDR_LEN <= NetworkPacket.MAX_PACKET_LENGTH) {
+            System.arraycopy(temp, 0, tmp, NetworkPacket.DFLT_HDR_LEN, temp.length);
+            tmp[NetworkPacket.LEN_INDEX] = ((byte) (temp.length + NetworkPacket.DFLT_HDR_LEN));
+        } else {
+            throw new IllegalArgumentException("Payload exceeds packet size");
+        }
+
+        networkPacket.setArray(tmp);
 
         // Send the packet to the flowtable
         flowTableQueue.add(networkPacket);
