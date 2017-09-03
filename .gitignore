@@ -18,3 +18,5 @@ buck-out
 .buckjavaargs*
 .watchmanconfig
 npm-debug.log
+*.log*
+*.cfg*
