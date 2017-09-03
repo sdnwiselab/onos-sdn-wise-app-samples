@@ -1,186 +1,138 @@
-#!/usr/bin/python
-
-from mininet.node import RemoteController, OVSSwitch, Host, Node
-from mininet.net import Mininet
-from mininet.link import TCLink
-from sensornode import SensorNode
-from mininet.nodelib import NAT
-
 import math
 
-def fixNetworkManager( root, intf ):
-		cfile = '/etc/network/interfaces'
-		line = '\niface %s inet manual\n' % intf
-		config = open( cfile ).read()
-		if line not in config:
-			print '*** Adding', line.strip(), 'to', cfile
-			with open( cfile, 'a' ) as f:
-				f.write( line )
-			root.cmd( 'service network-manager restart' )
+from mininet.link import TCLink
+from mininet.net import Mininet
+from mininet.node import RemoteController, OVSSwitch
 
-class MiniSensorNet( Mininet ):
-	def __init__( self ):
-		super( MiniSensorNet, self ).__init__( controller = RemoteController, switch = OVSSwitch, link = TCLink )
-		self.sensorNodes = {}
-		self.proxyNodes = {}
-		self.proxyCnt = 0
-		self.filePrefix = 'Node'
-		self.gwLinks = 0
-		self.switchGWPort = 1000
-		self.udpProxyPort = 50000
-		self.tcpProxyPort = 40000
-		self.sensorNodePort = 7000
-	
-	def addSensor( self, name, nodeId, netId = 1, posX = None, posY = None ):
-		host = self.addHost( name )
-		sensorNode = SensorNode( nodeId, netId, posX, posY )
-		self.sensorNodes[ host ] = sensorNode
-		return host
-		
-	def addLinkSensorSwitch( self, name, nodeId, switch, controllerIP, controllerPort, switchPort = None, netId = 1, posX = None, posY = None ):
-		# This is the gateway; subnet 1 is reserved for this reason
-		self.gwLinks = self.gwLinks + 1
-		gwIP = '10.0.1.' + str( self.gwLinks )
-		host = self.addHost( name, ip = str( gwIP + '/24' ), defaultRoute = 'via 10.0.1.254' )
-		sensorNode = SensorNode( nodeId, netId, posX, posY )
-		sensorNode.setGWIP( gwIP )
+from sensornode import SensorNode
 
-		if switchPort is not None:
-			sensorNode.setSwitchPort( switchPort )
-			ssLink = self.addLink( host, switch, port2 = switchPort )
-		else:
-			sensorNode.setSwitchPort( self.switchGWPort )
-			ssLink = self.addLink( host, switch, port2 = self.switchGWPort )
-		
-#		ssLink.intf1.setIP( gwIP + '/24' )
-		self.gwLinks = self.gwLinks + 1
-		
-		#sensorNode = self.sensorNodes[ sensor ]
-		#host.setIP( gwIP )
-		
-		#self.gwLinks = self.gwLinks + 1
-		
-		sensorNode.setGW( True, controllerIP, controllerPort, ssLink.intf1, switch )
 
-		self.sensorNodes[ host ] = sensorNode
-		return host
-	def addLinkSensorSensor( self, src, dst, linkRSSI = None ):
-		link = self.addLink( src, dst )
-		
-		subnetId = self.nextAvailableCommonSubnet( src, dst )
-		
-		ip1 = '10.0.' + str( subnetId ) + '.1'
-		fullIP1 = ip1 + '/24'
-		ip2 = '10.0.' + str( subnetId ) + '.2'
-		fullIP2 = ip2 + '/24'
-		
-		link.intf1.setIP( str( fullIP1 ) )
-		link.intf2.setIP( str( fullIP2 ) )
-		
-		#src.cmd( 'ping -c1 ' + ip2 )
-		#dst.cmd( 'ping -c1 ' + ip1 )
-		
-		port1 = self.sensorNodePort + self.sensorNodes.keys().index( src )
-		port2 = self.sensorNodePort + self.sensorNodes.keys().index( dst )
-		
-		srcSensor = self.sensorNodes[ src ]
-		dstSensor = self.sensorNodes[ dst ]
-		
-		srcSensor.setIP( ip1 )
-		srcSensor.setPort( port1 )
-		dstSensor.setIP( ip2 )
-		dstSensor.setPort( port2 )
-		
-		srcPosX = srcSensor.getX()
-		srcPosY = srcSensor.getY()
-		dstPosX = dstSensor.getX()
-		dstPosY = dstSensor.getY()
-		
-		pow1 = math.pow( srcPosX - dstPosX, 2 )
-		pow2 = math.pow( srcPosY - dstPosY, 2 )
-		distance = math.sqrt( pow1 + pow2 )
-		linkRssi = 200
-		
-		if distance != 0:
-			linkRssi = self.rssi( distance )
-			#print( distance )
-			#print( linkRssi )
-		
-		if linkRSSI is not None:
-			linkRssi = linkRSSI
-		
-		
-		fileName = self.filePrefix + '0.' + str( srcSensor.getNodeId() ) + '.cfg'
-		line = '0.' + str( dstSensor.getNodeId() ) + ',' + str( dstSensor.getIP() ) + ',' + str( dstSensor.getPort() ) + ',' + str( int( linkRssi ) ) + '\n'
-		with open( fileName, "a" ) as nodeConfigFile:
-			nodeConfigFile.write( line )
-			nodeConfigFile.close()
-			
-		fileName = self.filePrefix + '0.' + str( dstSensor.getNodeId() ) + '.cfg'
-		line = '0.' + str( srcSensor.getNodeId() ) + ',' + str( srcSensor.getIP() ) + ',' + str( srcSensor.getPort() ) + ',' + str( int( linkRssi ) ) + '\n'
-		with open( fileName, "a" ) as nodeConfigFile:
-			nodeConfigFile.write( line )
-			nodeConfigFile.close()		
-		
-		#distance = srcSensor.euclideanDistance( dstSensor )
-		#propagationDelay = self.propagationDelay( distance )
-		
-		#link.intf1.config( delay = propagationDelay )
-		#link.intf2.config( delay = propagationDelay )
-	
-	def nextAvailableCommonSubnet( self, srcHost, dstHost ):
-		srcSensor = self.sensorNodes[ srcHost ]
-		dstSensor = self.sensorNodes[ dstHost ]
-		nxtSubnet = srcSensor.nextAvailableSubnet()
-		for i in range( 2, 254 ):
-			if srcSensor.checkSubnetAvailable( i ) and dstSensor.checkSubnetAvailable( i ):
-				srcSensor.allocateSubnet( i )
-				dstSensor.allocateSubnet( i )
-				return i
-		
-		return -1
-	
-	def rssi( self, distance ):
-		rssi = -58 * math.log10( distance ) + 255
-		return int( rssi )
-		
-	def propagationDelay( self, distance ):
-		speed = 299792458
-		seconds = distance / speed
-		msec = seconds * 1000
-		
-		return msec
-	
-	def startSDNWISE( self, root ):
-		portCnt = 7000
-		for host, sensor in self.sensorNodes.iteritems():	
-			netId = str( sensor.getNetId() )
-			nodeId = sensor.getNodeId()
-			nodePort = str( portCnt )
-			fileName = self.filePrefix + '0.' + nodeId + '.cfg'
-			logFileName = self.filePrefix + nodeId + '.log'
-			cmd = ''
-			portCnt = portCnt + 1
-			if sensor.isGW():
-				controllerIP = str( sensor.getControllerIP() )
-				controllerPort = str( sensor.getControllerPort() )
-				#proxyCmd = 'java -jar UDPProxyServer.jar ' + str( sensor.getIP() ) + ' ' + nodePort + ' ' + str( self.udpProxyPort ) + ' &'
-				#sensor.getProxy().cmd( proxyCmd )
-				
-				switchDpid = str( sensor.getCoreNetSwitch().defaultDpid() )
-				
-				#rootCmd = 'java -jar ProxyServer.jar ' + controllerIP + ' ' + controllerPort + ' ' + str( self.tcpProxyPort ) + ' ' + switchDpid + ' ' + str( self.switchGWPort ) + ' ' + str( sensor.getProxyIntf().MAC() ) + ' ' + netId + ' ' + nodeId.split('.')[1] +' &'
-				#self.tcpProxyPort = self.tcpProxyPort + 1
-				#root.cmd( rootCmd )
-				
-				cmd = 'java -jar SDN-WISE_Node.jar' + ' -n ' + netId + ' -a ' + nodeId + ' -p ' + nodePort + ' -c ' +  controllerIP + ':' + controllerPort + ' -t ' + fileName + ' -sd ' + str( switchDpid )[8:] + ' -sm ' + str( sensor.getProxyIntf().MAC() ) + ' -sp ' + str( sensor.getSwitchPort() ) + ' -i ' + str( sensor.getGWIP() ) + ' -l FINEST &'
-			else:
-				cmd = 'java -jar SDN-WISE_Node.jar' + ' -n ' + netId + ' -a ' + nodeId + ' -p ' + nodePort + ' -t ' + fileName + ' -l FINEST &'
-			
-			print( 'Starting node ' + nodeId )
-			print( cmd )
-			host.cmd( cmd )
-			#beaconCmd = 'java -jar BeaconConfiguration.jar localhost ' + nodePort + ' ' + nodeId
-			#host.cmd( beaconCmd )
-			
-			
+def get_rssi(distance):
+    return int(-58 * math.log10(distance) + 255)
+
+
+class MiniSensorNet(Mininet):
+    def __init__(self):
+        super(MiniSensorNet, self).__init__(controller=RemoteController, switch=OVSSwitch, link=TCLink)
+        self.sensorNodes = {}
+        self.proxyNodes = {}
+        self.proxyCnt = 0
+        self.filePrefix = 'cfg/Node'
+        self.gwLinks = 0
+        self.switchGWPort = 1000
+        self.udpProxyPort = 50000
+        self.tcpProxyPort = 40000
+        self.sensorNodePort = 7000
+
+    def add_sensor(self, name, node_id, net_id=1, x=None, y=None):
+        host = self.addHost(name)
+        sensor_node = SensorNode(node_id, net_id, x, y)
+        self.sensorNodes[host] = sensor_node
+        return host
+
+    def add_link_sensor_switch(self, name, node_id, switch, controller_ip, controller_port, switch_port=None, net_id=1,
+                               x=None, y=None):
+        # This is the gateway; subnet 1 is reserved for this reason
+        self.gwLinks = self.gwLinks + 1
+        gw_ip = '10.0.1.' + str(self.gwLinks)
+        host = self.addHost(name, ip=str(gw_ip + '/24'), defaultRoute='via 10.0.1.254')
+        sensor_node = SensorNode(node_id, net_id, x, y)
+        sensor_node.gw_ip = gw_ip
+        if switch_port is not None:
+            sensor_node.switch_port = switch_port
+            ss_link = self.addLink(host, switch, port2=switch_port)
+        else:
+            sensor_node.switch_port = self.switchGWPort
+            ss_link = self.addLink(host, switch, port2=self.switchGWPort)
+        self.gwLinks = self.gwLinks + 1
+        sensor_node.setup_gw(controller_ip, controller_port, ss_link.intf1, switch)
+        self.sensorNodes[host] = sensor_node
+        return host
+
+    def add_link_sensor_sensor(self, src, dst, rssi=None):
+        link = self.addLink(src, dst)
+        subnet_id = self.next_available_common_subnet(src, dst)
+        ip1 = '10.0.' + str(subnet_id) + '.1'
+        full_ip1 = ip1 + '/24'
+        ip2 = '10.0.' + str(subnet_id) + '.2'
+        full_ip2 = ip2 + '/24'
+
+        link.intf1.setIP(str(full_ip1))
+        link.intf2.setIP(str(full_ip2))
+
+        port1 = self.sensorNodePort + self.sensorNodes.keys().index(src)
+        port2 = self.sensorNodePort + self.sensorNodes.keys().index(dst)
+
+        src_sensor = self.sensorNodes[src]
+        dst_sensor = self.sensorNodes[dst]
+
+        src_sensor.ip = ip1
+        src_sensor.port = port1
+        dst_sensor.ip = ip2
+        dst_sensor.port = port2
+
+        print "[%s-%s] Adding a link between %s and %s" % (src_sensor.node_id, dst_sensor.node_id, full_ip1, full_ip2)
+
+        distance = src_sensor.euclidean_distance(dst_sensor)
+        link_rssi = 200
+
+        if distance != 0:
+            link_rssi = get_rssi(distance)
+
+        if rssi is not None:
+            link_rssi = rssi
+
+        filename = self.filePrefix + '0.' + str(src_sensor.node_id) + '.cfg'
+        line = '0.' + str(dst_sensor.node_id) + ',' + str(dst_sensor.ip) + ',' + str(
+            dst_sensor.port) + ',' + str(link_rssi) + '\n'
+        with open(filename, "a") as nodeConfigFile:
+            nodeConfigFile.write(line)
+            nodeConfigFile.close()
+
+        filename = self.filePrefix + '0.' + str(dst_sensor.node_id) + '.cfg'
+        line = '0.' + str(src_sensor.node_id) + ',' + str(src_sensor.ip) + ',' + str(
+            src_sensor.port) + ',' + str(link_rssi) + '\n'
+        with open(filename, "a") as nodeConfigFile:
+            nodeConfigFile.write(line)
+            nodeConfigFile.close()
+        return link
+
+    def next_available_common_subnet(self, src, dst):
+        src_sensor = self.sensorNodes[src]
+        dst_sensor = self.sensorNodes[dst]
+        for i in range(2, 254):
+            if src_sensor.is_subnet_available(i) and dst_sensor.is_subnet_available(i):
+                src_sensor.allocate_subnet(i)
+                dst_sensor.allocate_subnet(i)
+                return i
+        return -1
+
+    def start_sdnwise(self):
+        port_cnt = 7000
+        for h, s in self.sensorNodes.iteritems():
+            filename = self.filePrefix + '0.' + s.node_id + '.cfg'
+            port_cnt = port_cnt + 1
+            if s.is_gw:
+                switch_dpid = str(s.proxy_switch.defaultDpid())
+                cmd = 'java -jar jar/sdn-wise-data.jar ' +\
+                      '-n %s -a %s -p %s -c %s:%s -t %s -sd %s -sm %s -sp %s -l FINEST &' %\
+                      (s.net_id,
+                       s.node_id,
+                       s.port,
+                       s.controller_ip,
+                       s.controller_port,
+                       filename,
+                       str(switch_dpid)[8:],
+                       str(s.proxy_intf.MAC()),
+                       str(s.switch_port))
+            else:
+                cmd = 'java -jar jar/sdn-wise-data.jar ' +\
+                      '-n %s -a %s -p %s -t %s -l FINEST &' %\
+                      (s.net_id,
+                       s.node_id,
+                       s.port,
+                       filename)
+
+            print('Starting node %s' % s.node_id)
+            print(cmd)
+            h.cmd(cmd)
